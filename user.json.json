@@ -1,0 +1,19 @@
+{
+    "7231743379": {
+        "id": "7231743379",
+        "name": "Sohan",
+        "username": "Treder_sohan",
+        "photo": "https://via.placeholder.com/50",
+        "balance": 100.00,
+        "totalAds": 0,
+        "totalRefs": 0,
+        "level": 1,
+        "lastBonus": null,
+        "lastMonetagAd": null,
+        "monetagAdsWatched": 0,
+        "completedTasks": [],
+        "withdrawHistory": [],
+        "isAdmin": true,
+        "joinDate": "2024-01-15"
+    }
+}

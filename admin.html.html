@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Admin Panel - Shohoj World</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+<header class="bg-gradient-to-r from-purple-700 to-pink-500 text-white p-4 flex justify-between items-center shadow-lg">
+  <h1 class="text-xl font-bold"><i class="fas fa-cog mr-2"></i>Admin Panel - Shohoj World</h1>
+  <div class="text-right">
+    <p id="currentZone" class="text-sm">Zone ID: ...</p>
+    <p id="adminName" class="text-xs opacity-80">Loading...</p>
+  </div>
+</header>
+
+<main class="p-6 flex-grow max-w-6xl mx-auto w-full space-y-6">
+  <!-- System Settings -->
+  <section class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold text-purple-700 mb-4"><i class="fas fa-sliders-h mr-2"></i>System Settings</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Zone ID</label>
+        <input id="zoneIdInput" type="text" class="border rounded-lg p-2 w-full" placeholder="1101"/>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Bot Username</label>
+        <input id="botUsernameInput" type="text" class="border rounded-lg p-2 w-full" placeholder="Shohoj_World_V3_bot"/>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Ad Rate (টাকা)</label>
+        <input id="adRateInput" type="number" step="0.01" class="border rounded-lg p-2 w-full" placeholder="0.50"/>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Referral Bonus (টাকা)</label>
+        <input id="refBonusInput" type="number" step="0.01" class="border rounded-lg p-2 w-full" placeholder="4.00"/>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Daily Bonus (টাকা)</label>
+        <input id="bonusAmountInput" type="number" step="0.01" class="border rounded-lg p-2 w-full" placeholder="5.00"/>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Min Withdraw (টাকা)</label>
+        <input id="minWithdrawInput" type="number" step="0.01" class="border rounded-lg p-2 w-full" placeholder="10.00"/>
+      </div>
+    </div>
+    <button onclick="updateSystemSettings()" class="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg mt-4 w-full">
+      <i class="fas fa-save mr-2"></i>Update All Settings
+    </button>
+  </section>
+
+  <!-- User Management -->
+  <section class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold text-purple-700 mb-4"><i class="fas fa-users mr-2"></i>Users Management</h2>
+    <div class="mb-4 flex space-x-2">
+      <input type="text" id="searchUser" class="border rounded-lg p-2 flex-1" placeholder="Search users by name or ID...">
+      <button onclick="searchUsers()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
+        <i class="fas fa-search mr-2"></i>Search
+      </button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full border border-gray-200">
+        <thead class="bg-purple-700 text-white">
+          <tr>
+            <th class="px-4 py-2">Photo</th>
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Username</th>
+            <th class="px-4 py-2">Balance</th>
+            <th class="px-4 py-2">Ads</th>
+            <th class="px-4 py-2">Referrals</th>
+            <th class="px-4 py-2">Level</th>
+            <th class="px-4 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Withdrawal Requests -->
+  <section class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold text-purple-700 mb-4"><i class="fas fa-wallet mr-2"></i>Withdrawal Requests</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full border border-gray-200">
+        <thead class="bg-green-600 text-white">
+          <tr>
+            <th class="px-4 py-2">User</th>
+            <th class="px-4 py-2">Method</th>
+            <th class="px-4 py-2">Account</th>
+            <th class="px-4 py-2">Amount</th>
+            <th class="px-4 py-2">Date</th>
+            <th class="px-4 py-2">Status</th>
+            <th class="px-4 py-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="withdrawTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- System Statistics -->
+  <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl shadow p-6 text-center">
+      <p class="text-sm text-gray-500"><i class="fas fa-users mr-1"></i> Total Users</p>
+      <p id="totalUsers" class="text-3xl font-bold text-purple-700">0</p>
+    </div>
+    <div class="bg-white rounded-xl shadow p-6 text-center">
+      <p class="text-sm text-gray-500"><i class="fas fa-money-bill-wave mr-1"></i> Total Balance</p>
+      <p id="totalBalance" class="text-3xl font-bold text-pink-600">0 ৳</p>
+    </div>
+    <div class="bg-white rounded-xl shadow p-6 text-center">
+      <p class="text-sm text-gray-500"><i class="fas fa-eye mr-1"></i> Total Ads</p>
+      <p id="totalAdsWatched" class="text-3xl font-bold text-green-600">0</p>
+    </div>
+    <div class="bg-white rounded-xl shadow p-6 text-center">
+      <p class="text-sm text-gray-500"><i class="fas fa-user-plus mr-1"></i> Total Referrals</p>
+      <p id="totalReferrals" class="text-3xl font-bold text-blue-600">0</p>
+    </div>
+  </section>
+
+  <!-- Bulk Actions -->
+  <section class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-lg font-bold text-purple-700 mb-4"><i class="fas fa-bolt mr-2"></i>Bulk Actions</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Add Bonus to All Users</label>
+        <input id="bulkBonusAmount" type="number" class="border rounded-lg p-2 w-full" placeholder="Amount" value="5"/>
+        <button onclick="addBonusToAll()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg w-full mt-2">
+          <i class="fas fa-gift mr-2"></i>Add Bonus
+        </button>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Reset User Data</label>
+        <select id="resetOption" class="border rounded-lg p-2 w-full">
+          <option value="balance">Reset Balance Only</option>
+          <option value="all">Reset All Data</option>
+        </select>
+        <button onclick="resetUserData()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg w-full mt-2">
+          <i class="fas fa-redo mr-2"></i>Reset Data
+        </button>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Export/Import</label>
+        <div class="flex space-x-2">
+          <button onclick="exportData()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg flex-1">
+            <i class="fas fa-download mr-2"></i>Export
+          </button>
+          <button onclick="importData()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded-lg flex-1">
+            <i class="fas fa-upload mr-2"></i>Import
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+// Current admin user
+let currentAdmin = {
+    id: "7231743379",
+    name: "Sohan",
+    username: "Treder_sohan"
+};
+
+// Check admin access
+function checkAdminAccess() {
+    const allowedAdmins = ['7231743379']; // Only your ID
+    
+    // For GitHub Pages, we'll use simple check
+    let userData = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+    let currentUser = userData['7231743379'];
+    
+    if (!currentUser || !currentUser.isAdmin) {
+        alert('⚠️ Admin Access Denied! Redirecting...');
+        window.location.href = 'index.html';
+        return false;
+    }
+    
+    document.getElementById('adminName').innerText = `Admin: ${currentUser.name}`;
+    return true;
+}
+
+// Load System Settings
+function loadSystemSettings() {
+    fetch('./zone.json')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById("currentZone").innerText = "Zone ID: " + data.zoneId;
+            document.getElementById("zoneIdInput").value = data.zoneId;
+            document.getElementById("botUsernameInput").value = data.botUsername || "";
+            document.getElementById("adRateInput").value = data.adRate || 0.50;
+            document.getElementById("refBonusInput").value = data.refBonus || 4.00;
+            document.getElementById("bonusAmountInput").value = data.bonusAmount || 5.00;
+            document.getElementById("minWithdrawInput").value = data.minWithdraw || 10.00;
+        })
+        .catch(error => {
+            console.log('Failed to load zone.json, using defaults');
+            document.getElementById("zoneIdInput").value = "1101";
+            document.getElementById("botUsernameInput").value = "Shohoj_World_V3_bot";
+            document.getElementById("adRateInput").value = 0.50;
+            document.getElementById("refBonusInput").value = 4.00;
+        });
+}
+
+// Update All Settings
+function updateSystemSettings() {
+    let settings = {
+        zoneId: document.getElementById("zoneIdInput").value,
+        botUsername: document.getElementById("botUsernameInput").value,
+        adRate: parseFloat(document.getElementById("adRateInput").value),
+        refBonus: parseFloat(document.getElementById("refBonusInput").value),
+        bonusAmount: parseFloat(document.getElementById("bonusAmountInput").value),
+        minWithdraw: parseFloat(document.getElementById("minWithdrawInput").value),
+        monetagEnabled: true,
+        monetagFrequency: 10,
+        levelBonusMultiplier: 2,
+        adminId: "7231743379"
+    };
+    
+    // Save to localStorage (GitHub Pages compatible)
+    localStorage.setItem('shohoj_settings', JSON.stringify(settings));
+    
+    alert("✅ All Settings Updated Successfully!\n\nUsers will see changes immediately.");
+    
+    // Update current display
+    document.getElementById("currentZone").innerText = "Zone ID: " + settings.zoneId;
+}
+
+// Load Users Data
+function loadUsersData() {
+    // Try to load from GitHub first
+    fetch('./users.json')
+        .then(r => r.json())
+        .then(users => {
+            displayUsersTable(users);
+            calculateStatistics(users);
+        })
+        .catch(error => {
+            // Fallback to localStorage
+            let localUsers = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+            displayUsersTable(localUsers);
+            calculateStatistics(localUsers);
+        });
+}
+
+// Display Users Table
+function displayUsersTable(users) {
+    let table = document.getElementById("userTable");
+    table.innerHTML = "";
+    
+    for(let id in users){
+        let u = users[id];
+        table.innerHTML += `
+            <tr class="text-center border-t hover:bg-gray-50">
+                <td class="px-4 py-2">
+                    <img src="${u.photo}" class="w-10 h-10 rounded-full mx-auto" onerror="this.src='https://via.placeholder.com/50'">
+                </td>
+                <td class="px-4 py-2 font-medium">${u.name}</td>
+                <td class="px-4 py-2 text-blue-600">@${u.username}</td>
+                <td class="px-4 py-2">
+                    <input type="number" id="balance-${u.id}" value="${u.balance.toFixed(2)}" class="border p-1 w-20 text-center" step="0.01" style="border-color: #e5e7eb;">
+                </td>
+                <td class="px-4 py-2">${u.totalAds}</td>
+                <td class="px-4 py-2">${u.totalRefs || 0}</td>
+                <td class="px-4 py-2">
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">${u.level || 1}</span>
+                </td>
+                <td class="px-4 py-2 space-x-1">
+                    <button onclick="saveUserBalance('${u.id}')" class="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700">
+                        <i class="fas fa-save text-xs"></i>
+                    </button>
+                    <button onclick="editUser('${u.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700">
+                        <i class="fas fa-edit text-xs"></i>
+                    </button>
+                    <button onclick="deleteUser('${u.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700">
+                        <i class="fas fa-trash text-xs"></i>
+                    </button>
+                </td>
+            </tr>`;
+    }
+    
+    if (Object.keys(users).length === 0) {
+        table.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                    <i class="fas fa-users text-4xl mb-2 block"></i>
+                    No users found
+                </td>
+            </tr>`;
+    }
+}
+
+// Calculate Statistics
+function calculateStatistics(users) {
+    let totalUsers = 0;
+    let totalBalance = 0;
+    let totalAds = 0;
+    let totalRefs = 0;
+    
+    for(let id in users){
+        let u = users[id];
+        totalUsers++;
+        totalBalance += u.balance;
+        totalAds += u.totalAds;
+        totalRefs += u.totalRefs || 0;
+    }
+    
+    document.getElementById("totalUsers").innerText = totalUsers;
+    document.getElementById("totalBalance").innerText = totalBalance.toFixed(2) + " ৳";
+    document.getElementById("totalAdsWatched").innerText = totalAds;
+    document.getElementById("totalReferrals").innerText = totalRefs;
+    
+    loadWithdrawals(users);
+}
+
+// Save User Balance
+function saveUserBalance(userId) {
+    let newBalance = parseFloat(document.getElementById(`balance-${userId}`).value);
+    
+    let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+    if(users[userId]) {
+        users[userId].balance = newBalance;
+        localStorage.setItem('shohoj_users', JSON.stringify(users));
+        alert("✅ User Balance Updated Successfully!");
+        loadUsersData(); // Refresh table
+    }
+}
+
+// Edit User
+function editUser(userId) {
+    let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+    let user = users[userId];
+    
+    if(user) {
+        let newName = prompt("Enter new name:", user.name);
+        if(newName !== null && newName.trim() !== "") {
+            users[userId].name = newName.trim();
+            localStorage.setItem('shohoj_users', JSON.stringify(users));
+            alert("✅ User Name Updated!");
+            loadUsersData();
+        }
+    }
+}
+
+// Delete User
+function deleteUser(userId) {
+    if(confirm("Are you sure you want to delete this user?\n\nThis action cannot be undone!")) {
+        let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+        delete users[userId];
+        localStorage.setItem('shohoj_users', JSON.stringify(users));
+        alert("✅ User Deleted Successfully!");
+        loadUsersData();
+    }
+}
+
+// Search Users
+function searchUsers() {
+    let searchTerm = document.getElementById("searchUser").value.toLowerCase();
+    let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+    let filteredUsers = {};
+    
+    for(let id in users) {
+        let u = users[id];
+        if(u.name.toLowerCase().includes(searchTerm) || 
+           u.username.toLowerCase().includes(searchTerm) ||
+           id.includes(searchTerm)) {
+            filteredUsers[id] = u;
+        }
+    }
+    
+    displayUsersTable(filteredUsers);
+    calculateStatistics(filteredUsers);
+}
+
+// Load Withdrawal Requests
+function loadWithdrawals(users) {
+    let table = document.getElementById("withdrawTable");
+    table.innerHTML = "";
+    let hasWithdrawals = false;
+    
+    for(let id in users) {
+        let u = users[id];
+        if(u.withdrawHistory) {
+            u.withdrawHistory.forEach((withdrawal, index) => {
+                if(withdrawal.status === 'pending') {
+                    hasWithdrawals = true;
+                    table.innerHTML += `
+                        <tr class="text-center border-t hover:bg-gray-50">
+                            <td class="px-4 py-2 font-medium">${u.name}</td>
+                            <td class="px-4 py-2">
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">${withdrawal.method}</span>
+                            </td>
+                            <td class="px-4 py-2 font-mono">${withdrawal.account}</td>
+                            <td class="px-4 py-2 font-bold text-green-600">${withdrawal.amount} ৳</td>
+                            <td class="px-4 py-2 text-sm">${new Date(withdrawal.date).toLocaleDateString()}</td>
+                            <td class="px-4 py-2">
+                                <span class="px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-sm">Pending</span>
+                            </td>
+                            <td class="px-4 py-2 space-x-1">
+                                <button onclick="approveWithdrawal('${u.id}', ${index})" class="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700">
+                                    <i class="fas fa-check text-xs"></i> Approve
+                                </button>
+                                <button onclick="rejectWithdrawal('${u.id}', ${index})" class="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700">
+                                    <i class="fas fa-times text-xs"></i> Reject
+                                </button>
+                            </td>
+                        </tr>`;
+                }
+            });
+        }
+    }
+    
+    if (!hasWithdrawals) {
+        table.innerHTML = `
+            <tr>
+                <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                    <i class="fas fa-wallet text-4xl mb-2 block"></i>
+                    No pending withdrawal requests
+                </td>
+            </tr>`;
+    }
+}
+
+// Approve Withdrawal
+function approveWithdrawal(userId, index) {
+    let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+    if(users[userId] && users[userId].withdrawHistory) {
+        users[userId].withdrawHistory[index].status = "completed";
+        users[userId].withdrawHistory[index].approvedDate = new Date().toISOString();
+        localStorage.setItem('shohoj_users', JSON.stringify(users));
+        alert("✅ Withdrawal Approved Successfully!");
+        loadUsersData();
+    }
+}
+
+// Reject Withdrawal
+function rejectWithdrawal(userId, index) {
+    let reason = prompt("Rejection reason:");
+    if(reason !== null) {
+        let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+        if(users[userId] && users[userId].withdrawHistory) {
+            users[userId].withdrawHistory[index].status = "rejected";
+            users[userId].withdrawHistory[index].rejectReason = reason;
+            // Return money to balance
+            users[userId].balance += users[userId].withdrawHistory[index].amount;
+            localStorage.setItem('shohoj_users', JSON.stringify(users));
+            alert("✅ Withdrawal Rejected!");
+            loadUsersData();
+        }
+    }
+}
+
+// Bulk Bonus to All Users
+function addBonusToAll() {
+    let amount = parseFloat(document.getElementById("bulkBonusAmount").value);
+    
+    if(confirm(`Add ${amount} TK bonus to ALL ${Object.keys(JSON.parse(localStorage.getItem('shohoj_users')) || {}).length} users?`)) {
+        let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+        for(let id in users) {
+            users[id].balance += amount;
+        }
+        localStorage.setItem('shohoj_users', JSON.stringify(users));
+        alert(`✅ ${amount} TK bonus added to all users!`);
+        loadUsersData();
+    }
+}
+
+// Reset User Data
+function resetUserData() {
+    let option = document.getElementById("resetOption").value;
+    
+    if(confirm(`Are you sure you want to reset ${option === 'all' ? 'ALL DATA' : 'BALANCE ONLY'} for all users?`)) {
+        let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+        for(let id in users) {
+            if(option === 'balance') {
+                users[id].balance = 0;
+            } else {
+                users[id].balance = 0;
+                users[id].totalAds = 0;
+                users[id].totalRefs = 0;
+                users[id].level = 1;
+                users[id].completedTasks = [];
+                users[id].withdrawHistory = [];
+            }
+        }
+        localStorage.setItem('shohoj_users', JSON.stringify(users));
+        alert(`✅ User data reset successfully!`);
+        loadUsersData();
+    }
+}
+
+// Export Data
+function exportData() {
+    let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+    let settings = JSON.parse(localStorage.getItem('shohoj_settings')) || {};
+    
+    let exportData = {
+        users: users,
+        settings: settings,
+        exportDate: new Date().toISOString(),
+        totalUsers: Object.keys(users).length
+    };
+    
+    let dataStr = JSON.stringify(exportData, null, 2);
+    let dataBlob = new Blob([dataStr], {type: 'application/json'});
+    
+    let link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = 'shohoj_world_backup.json';
+    link.click();
+    
+    alert("✅ Data exported successfully!");
+}
+
+// Import Data
+function importData() {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = function(event) {
+        let file = event.target.files[0];
+        let reader = new FileReader();
+        
+        reader.onload = function(e) {
+            try {
+                let importedData = JSON.parse(e.target.result);
+                
+                if(confirm(`Import data with ${Object.keys(importedData.users || {}).length} users?`)) {
+                    if(importedData.users) {
+                        localStorage.setItem('shohoj_users', JSON.stringify(importedData.users));
+                    }
+                    if(importedData.settings) {
+                        localStorage.setItem('shohoj_settings', JSON.stringify(importedData.settings));
+                    }
+                    alert("✅ Data imported successfully!");
+                    loadUsersData();
+                    loadSystemSettings();
+                }
+            } catch(error) {
+                alert("❌ Invalid file format!");
+            }
+        };
+        
+        reader.readAsText(file);
+    };
+    
+    input.click();
+}
+
+// Initialize Admin Panel
+document.addEventListener('DOMContentLoaded', function() {
+    if (checkAdminAccess()) {
+        loadSystemSettings();
+        loadUsersData();
+        
+        // Refresh every 30 seconds
+        setInterval(loadUsersData, 30000);
+    }
+});
+</script>
+</body>
+</html>

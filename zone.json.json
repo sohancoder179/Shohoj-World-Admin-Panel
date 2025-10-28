@@ -1,0 +1,12 @@
+{
+    "zoneId": "1101",
+    "botUsername": "Shohoj_World_V3_bot",
+    "adRate": 0.50,
+    "refBonus": 4.00,
+    "bonusAmount": 5.00,
+    "minWithdraw": 10.00,
+    "monetagEnabled": true,
+    "monetagFrequency": 10,
+    "levelBonusMultiplier": 2,
+    "adminId": "7231743379"
+}

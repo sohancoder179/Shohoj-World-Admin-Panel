@@ -1,0 +1,201 @@
+<?php
+// Telegram Bot Configuration
+$telegram_token = "8420533466:AAHkRQ1l8MuMsYBHcjIzZPozgfcbB7njDnQ";
+$bot_username = "Shohoj_World_V3_bot";
+$website_url = "https://sohancoder169.github.io/shohoj-world";
+
+// Set webhook (run once manually)
+if(isset($_GET['setup'])) {
+    $webhook_url = "https://your-domain.com/bot.php"; // Replace with your actual domain
+    $result = file_get_contents("https://api.telegram.org/bot{$telegram_token}/setWebhook?url={$webhook_url}");
+    echo "Webhook setup: " . $result;
+    exit;
+}
+
+$update = json_decode(file_get_contents("php://input"), true);
+
+if(isset($update['message'])) {
+    $message = $update['message'];
+    $chat_id = $message['chat']['id'];
+    $text = $message['text'];
+    $first_name = $message['chat']['first_name'];
+    $username = $message['chat']['username'] ?? 'NoUsername';
+    
+    // Handle /start command with referral
+    if(strpos($text, '/start') === 0) {
+        $parts = explode(' ', $text);
+        
+        if(isset($parts[1]) && strpos($parts[1], 'ref') === 0) {
+            $ref_id = str_replace('ref', '', $parts[1]);
+            handleReferral($chat_id, $ref_id, $first_name, $username);
+        } else {
+            sendWelcomeMessage($chat_id, $first_name);
+        }
+    }
+    
+    // Handle /balance command
+    elseif($text === '/balance') {
+        checkUserBalance($chat_id, $first_name, $username);
+    }
+    
+    // Handle /referral command
+    elseif($text === '/referral') {
+        sendReferralInfo($chat_id, $username);
+    }
+    
+    // Handle /help command
+    elseif($text === '/help') {
+        sendHelpMessage($chat_id);
+    }
+    
+    // Handle /website command
+    elseif($text === '/website') {
+        sendWebsiteInfo($chat_id);
+    }
+}
+
+// Handle referral system
+function handleReferral($chat_id, $ref_id, $first_name, $username) {
+    global $telegram_token, $website_url;
+    
+    // Here you would typically save to your database
+    // For now, we'll just send a welcome message
+    
+    $message = "🎉 Welcome {$first_name}!\n\n";
+    $message .= "You joined via referral! Your friend will receive 4.00 TK bonus.\n\n";
+    $message .= "💰 Start earning money now:\n";
+    $message .= "{$website_url}\n\n";
+    $message .= "Use /help to see all commands";
+    
+    sendMessage($chat_id, $message);
+}
+
+// Send welcome message
+function sendWelcomeMessage($chat_id, $first_name) {
+    global $website_url;
+    
+    $message = "👋 Hello {$first_name}!\n\n";
+    $message .= "Welcome to *Shohoj World*! 🚀\n\n";
+    $message .= "💰 *Earn Money By:*\n";
+    $message .= "• Watching Ads (0.50 TK each)\n";
+    $message .= "• Daily Bonuses (5 TK daily)\n";
+    $message .= "• Referral System (4 TK per friend)\n";
+    $message .= "• Completing Tasks\n\n";
+    $message .= "🎯 *Start Earning Now:*\n";
+    $message .= "{$website_url}\n\n";
+    $message .= "📋 *Available Commands:*\n";
+    $message .= "/balance - Check your balance\n";
+    $message .= "/referral - Get referral link\n";
+    $message .= "/website - Visit website\n";
+    $message .= "/help - Show help message";
+    
+    sendMessage($chat_id, $message);
+}
+
+// Check user balance
+function checkUserBalance($chat_id, $first_name, $username) {
+    global $website_url;
+    
+    $message = "💰 *Balance Information*\n\n";
+    $message .= "Hello {$first_name}!\n\n";
+    $message .= "To check your balance and start earning, please visit our website:\n";
+    $message .= "{$website_url}\n\n";
+    $message .= "There you can:\n";
+    $message .= "• View your current balance\n";
+    $message .= "• Watch ads and earn money\n";
+    $message .= "• See your referral stats\n";
+    $message .= "• Request withdrawals";
+    
+    sendMessage($chat_id, $message);
+}
+
+// Send referral information
+function sendReferralInfo($chat_id, $username) {
+    global $bot_username, $website_url;
+    
+    $ref_link = "https://t.me/{$bot_username}?start=ref{$chat_id}";
+    
+    $message = "👥 *Referral System*\n\n";
+    $message .= "Earn *4.00 TK* for each friend who joins using your link!\n\n";
+    $message .= "🔗 *Your Referral Link:*\n";
+    $message .= "`{$ref_link}`\n\n";
+    $message .= "📤 *How to share:*\n";
+    $message .= "1. Copy the link above\n";
+    $message .= "2. Share with your friends\n";
+    $message .= "3. When they join, you get 4 TK!\n\n";
+    $message .= "💡 *Pro Tip:*\n";
+    $message .= "Share in groups and social media for more earnings!";
+    
+    sendMessage($chat_id, $message);
+}
+
+// Send help message
+function sendHelpMessage($chat_id) {
+    global $website_url;
+    
+    $message = "🆘 *Shohoj World Help*\n\n";
+    $message .= "💰 *Available Commands:*\n";
+    $message .= "/start - Start the bot\n";
+    $message .= "/balance - Check your balance\n";
+    $message .= "/referral - Get referral link\n";
+    $message .= "/website - Visit website\n";
+    $message .= "/help - Show this help\n\n";
+    $message .= "🎯 *Main Features:*\n";
+    $message .= "• Watch Ads: 0.50 TK each\n";
+    $message .= "• Daily Bonus: 5 TK daily\n";
+    $message .= "• Referral Bonus: 4 TK per friend\n";
+    $message .= "• Level System: Earn more as you level up\n\n";
+    $message .= "🌐 *Website:*\n";
+    $message .= "{$website_url}\n\n";
+    $message .= "For full features, visit our web app!";
+    
+    sendMessage($chat_id, $message);
+}
+
+// Send website info
+function sendWebsiteInfo($chat_id) {
+    global $website_url;
+    
+    $message = "🌐 *Shohoj World Website*\n\n";
+    $message .= "Visit our website to start earning money:\n\n";
+    $message .= "🔗 {$website_url}\n\n";
+    $message .= "On our website you can:\n";
+    $message .= "• Watch ads and earn money\n";
+    $message .= "• Get daily bonuses\n";
+    $message .= "• Invite friends for bonuses\n";
+    $message .= "• Complete tasks\n";
+    $message .= "• Withdraw your earnings\n\n";
+    $message .= "Start your earning journey today! 🚀";
+    
+    sendMessage($chat_id, $message);
+}
+
+// Send message function
+function sendMessage($chat_id, $text) {
+    global $telegram_token;
+    
+    $url = "https://api.telegram.org/bot{$telegram_token}/sendMessage";
+    $data = [
+        'chat_id' => $chat_id, 
+        'text' => $text,
+        'parse_mode' => 'Markdown',
+        'disable_web_page_preview' => false
+    ];
+    
+    $options = [
+        'http' => [
+            'method' => 'POST',
+            'header' => 'Content-Type: application/x-www-form-urlencoded',
+            'content' => http_build_query($data)
+        ]
+    ];
+    
+    $context = stream_context_create($options);
+    $result = file_get_contents($url, false, $context);
+    
+    return $result;
+}
+
+// If no message, return OK
+echo "OK";
+?>
