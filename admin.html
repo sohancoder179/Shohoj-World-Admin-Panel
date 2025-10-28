@@ -18,7 +18,6 @@
 </header>
 
 <main class="p-6 flex-grow max-w-6xl mx-auto w-full space-y-6">
-  <!-- System Settings -->
   <section class="bg-white rounded-xl shadow p-6">
     <h2 class="text-lg font-bold text-purple-700 mb-4"><i class="fas fa-sliders-h mr-2"></i>System Settings</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -52,7 +51,6 @@
     </button>
   </section>
 
-  <!-- User Management -->
   <section class="bg-white rounded-xl shadow p-6">
     <h2 class="text-lg font-bold text-purple-700 mb-4"><i class="fas fa-users mr-2"></i>Users Management</h2>
     <div class="mb-4 flex space-x-2">
@@ -80,7 +78,6 @@
     </div>
   </section>
 
-  <!-- Withdrawal Requests -->
   <section class="bg-white rounded-xl shadow p-6">
     <h2 class="text-lg font-bold text-purple-700 mb-4"><i class="fas fa-wallet mr-2"></i>Withdrawal Requests</h2>
     <div class="overflow-x-auto">
@@ -101,7 +98,6 @@
     </div>
   </section>
 
-  <!-- System Statistics -->
   <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
     <div class="bg-white rounded-xl shadow p-6 text-center">
       <p class="text-sm text-gray-500"><i class="fas fa-users mr-1"></i> Total Users</p>
@@ -121,7 +117,6 @@
     </div>
   </section>
 
-  <!-- Bulk Actions -->
   <section class="bg-white rounded-xl shadow p-6">
     <h2 class="text-lg font-bold text-purple-700 mb-4"><i class="fas fa-bolt mr-2"></i>Bulk Actions</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -167,42 +162,36 @@ let currentAdmin = {
 
 // Check admin access
 function checkAdminAccess() {
-    const allowedAdmins = ['7231743379']; // Only your ID
-    
-    // For GitHub Pages, we'll use simple check
     let userData = JSON.parse(localStorage.getItem('shohoj_users')) || {};
     let currentUser = userData['7231743379'];
     
+    /* *** গুরুত্বপূর্ণ: এই if কন্ডিশনটি বর্তমানে বন্ধ করা আছে (কমেন্ট করা আছে) ***
+    আপনাকে প্রথমে প্যানেলে প্রবেশ করতে হবে এবং আপনার আইডিকে অ্যাডমিন হিসেবে সেট করতে হবে। 
+    কাজ হয়ে গেলে নিচের তিনটি লাইন থেকে কমেন্ট (//) চিহ্নগুলো মুছে দেবেন।
+    
     if (!currentUser || !currentUser.isAdmin) {
-        alert('⚠️ Admin Access Denied! Redirecting...');
-        window.location.href = 'index.html';
+        alert('⚠️ Admin Access Denied! Redirecting to User Panel...');
+        window.location.href = '../index.html'; // অ্যাডমিন প্যানেল বন্ধ হলে, ইউজার প্যানেলে যেতে হবে 
         return false;
     }
+    */
     
-    document.getElementById('adminName').innerText = `Admin: ${currentUser.name}`;
+    document.getElementById('adminName').innerText = `Admin: ${currentUser?.name || "Sohan"}`;
     return true;
 }
 
-// Load System Settings
+// Load System Settings (সরাসরি localStorage থেকে লোড করা হচ্ছে)
 function loadSystemSettings() {
-    fetch('./zone.json')
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById("currentZone").innerText = "Zone ID: " + data.zoneId;
-            document.getElementById("zoneIdInput").value = data.zoneId;
-            document.getElementById("botUsernameInput").value = data.botUsername || "";
-            document.getElementById("adRateInput").value = data.adRate || 0.50;
-            document.getElementById("refBonusInput").value = data.refBonus || 4.00;
-            document.getElementById("bonusAmountInput").value = data.bonusAmount || 5.00;
-            document.getElementById("minWithdrawInput").value = data.minWithdraw || 10.00;
-        })
-        .catch(error => {
-            console.log('Failed to load zone.json, using defaults');
-            document.getElementById("zoneIdInput").value = "1101";
-            document.getElementById("botUsernameInput").value = "Shohoj_World_V3_bot";
-            document.getElementById("adRateInput").value = 0.50;
-            document.getElementById("refBonusInput").value = 4.00;
-        });
+    let settings = JSON.parse(localStorage.getItem('shohoj_settings')) || {};
+        
+    // যদি localStorage এ না থাকে, তবে ডিফল্ট ভ্যালু ব্যবহার করুন
+    document.getElementById("zoneIdInput").value = settings.zoneId || "1101";
+    document.getElementById("botUsernameInput").value = settings.botUsername || "Shohoj_World_V3_bot";
+    document.getElementById("adRateInput").value = settings.adRate || 0.50;
+    document.getElementById("refBonusInput").value = settings.refBonus || 4.00;
+    document.getElementById("bonusAmountInput").value = settings.bonusAmount || 5.00;
+    document.getElementById("minWithdrawInput").value = settings.minWithdraw || 10.00;
+    document.getElementById("currentZone").innerText = "Zone ID: " + (settings.zoneId || "1101");
 }
 
 // Update All Settings
@@ -220,7 +209,7 @@ function updateSystemSettings() {
         adminId: "7231743379"
     };
     
-    // Save to localStorage (GitHub Pages compatible)
+    // Save to localStorage
     localStorage.setItem('shohoj_settings', JSON.stringify(settings));
     
     alert("✅ All Settings Updated Successfully!\n\nUsers will see changes immediately.");
@@ -229,21 +218,11 @@ function updateSystemSettings() {
     document.getElementById("currentZone").innerText = "Zone ID: " + settings.zoneId;
 }
 
-// Load Users Data
+// Load Users Data (সরাসরি localStorage থেকে লোড করা হচ্ছে)
 function loadUsersData() {
-    // Try to load from GitHub first
-    fetch('./users.json')
-        .then(r => r.json())
-        .then(users => {
-            displayUsersTable(users);
-            calculateStatistics(users);
-        })
-        .catch(error => {
-            // Fallback to localStorage
-            let localUsers = JSON.parse(localStorage.getItem('shohoj_users')) || {};
-            displayUsersTable(localUsers);
-            calculateStatistics(localUsers);
-        });
+    let localUsers = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+    displayUsersTable(localUsers);
+    calculateStatistics(localUsers);
 }
 
 // Display Users Table
@@ -253,12 +232,15 @@ function displayUsersTable(users) {
     
     for(let id in users){
         let u = users[id];
+        // 'isAdmin' প্রপার্টি না থাকলে ডিফল্ট false ধরবে
+        const isAdmin = u.isAdmin || false;
+        
         table.innerHTML += `
-            <tr class="text-center border-t hover:bg-gray-50">
+            <tr class="text-center border-t hover:bg-gray-50 ${isAdmin ? 'bg-yellow-100' : ''}">
                 <td class="px-4 py-2">
-                    <img src="${u.photo}" class="w-10 h-10 rounded-full mx-auto" onerror="this.src='https://via.placeholder.com/50'">
+                    <img src="${u.photo || 'https://via.placeholder.com/50'}" class="w-10 h-10 rounded-full mx-auto" onerror="this.src='https://via.placeholder.com/50'">
                 </td>
-                <td class="px-4 py-2 font-medium">${u.name}</td>
+                <td class="px-4 py-2 font-medium">${u.name} ${isAdmin ? '<span class="text-red-500 font-bold">(ADMIN)</span>' : ''}</td>
                 <td class="px-4 py-2 text-blue-600">@${u.username}</td>
                 <td class="px-4 py-2">
                     <input type="number" id="balance-${u.id}" value="${u.balance.toFixed(2)}" class="border p-1 w-20 text-center" step="0.01" style="border-color: #e5e7eb;">
@@ -272,8 +254,8 @@ function displayUsersTable(users) {
                     <button onclick="saveUserBalance('${u.id}')" class="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700">
                         <i class="fas fa-save text-xs"></i>
                     </button>
-                    <button onclick="editUser('${u.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700">
-                        <i class="fas fa-edit text-xs"></i>
+                    <button onclick="toggleAdminStatus('${u.id}', ${isAdmin})" class="bg-${isAdmin ? 'red' : 'blue'}-600 text-white px-2 py-1 rounded text-sm hover:bg-${isAdmin ? 'red' : 'blue'}-700">
+                        <i class="fas fa-${isAdmin ? 'user-slash' : 'user-shield'} text-xs"></i> ${isAdmin ? 'Demote' : 'Make Admin'}
                     </button>
                     <button onclick="deleteUser('${u.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700">
                         <i class="fas fa-trash text-xs"></i>
@@ -329,7 +311,23 @@ function saveUserBalance(userId) {
     }
 }
 
-// Edit User
+// Toggle Admin Status
+function toggleAdminStatus(userId, currentStatus) {
+    let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
+    if(users[userId]) {
+        if(currentStatus) {
+            delete users[userId].isAdmin; // Demote
+            alert(`✅ ${users[userId].name} is no longer an Admin!`);
+        } else {
+            users[userId].isAdmin = true; // Promote
+            alert(`✅ ${users[userId].name} is now an Admin!`);
+        }
+        localStorage.setItem('shohoj_users', JSON.stringify(users));
+        loadUsersData(); // Refresh table
+    }
+}
+
+// Edit User (Functionality updated to allow basic name edit)
 function editUser(userId) {
     let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
     let user = users[userId];
