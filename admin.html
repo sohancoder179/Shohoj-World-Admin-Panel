@@ -4,6 +4,9 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Admin Panel - Shohoj World</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -160,24 +163,16 @@ let currentAdmin = {
     username: "Treder_sohan"
 };
 
-// Check admin access
+// Check admin access - সম্পূর্ণরূপে নিষ্ক্রিয় করা হলো
 function checkAdminAccess() {
     let userData = JSON.parse(localStorage.getItem('shohoj_users')) || {};
     let currentUser = userData['7231743379'];
     
-    /* *** গুরুত্বপূর্ণ: এই if কন্ডিশনটি বর্তমানে বন্ধ করা আছে (কমেন্ট করা আছে) ***
-    আপনাকে প্রথমে প্যানেলে প্রবেশ করতে হবে এবং আপনার আইডিকে অ্যাডমিন হিসেবে সেট করতে হবে। 
-    কাজ হয়ে গেলে নিচের তিনটি লাইন থেকে কমেন্ট (//) চিহ্নগুলো মুছে দেবেন।
-    
-    if (!currentUser || !currentUser.isAdmin) {
-        alert('⚠️ Admin Access Denied! Redirecting to User Panel...');
-        window.location.href = '../index.html'; // অ্যাডমিন প্যানেল বন্ধ হলে, ইউজার প্যানেলে যেতে হবে 
-        return false;
-    }
-    */
-    
+    // কোনো ডেটা না থাকলেও Admin: Sohan দেখাবে
     document.getElementById('adminName').innerText = `Admin: ${currentUser?.name || "Sohan"}`;
-    return true;
+    
+    // সবসময় true ফেরত দেবে
+    return true; 
 }
 
 // Load System Settings (সরাসরি localStorage থেকে লোড করা হচ্ছে)
@@ -225,14 +220,25 @@ function loadUsersData() {
     calculateStatistics(localUsers);
 }
 
-// Display Users Table
+// Display Users Table (ফাঁকা ডেটা হ্যান্ডেল করার জন্য সুরক্ষিত)
 function displayUsersTable(users) {
     let table = document.getElementById("userTable");
     table.innerHTML = "";
     
+    // ইউজার ডেটা না থাকলে এরর না দিয়ে সরাসরি মেসেজ দেখাবে
+    if (!users || Object.keys(users).length === 0) {
+        table.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                    <i class="fas fa-users text-4xl mb-2 block"></i>
+                    No users found
+                </td>
+            </tr>`;
+        return;
+    }
+    
     for(let id in users){
         let u = users[id];
-        // 'isAdmin' প্রপার্টি না থাকলে ডিফল্ট false ধরবে
         const isAdmin = u.isAdmin || false;
         
         table.innerHTML += `
@@ -260,16 +266,6 @@ function displayUsersTable(users) {
                     <button onclick="deleteUser('${u.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700">
                         <i class="fas fa-trash text-xs"></i>
                     </button>
-                </td>
-            </tr>`;
-    }
-    
-    if (Object.keys(users).length === 0) {
-        table.innerHTML = `
-            <tr>
-                <td colspan="8" class="px-4 py-8 text-center text-gray-500">
-                    <i class="fas fa-users text-4xl mb-2 block"></i>
-                    No users found
                 </td>
             </tr>`;
     }
@@ -327,7 +323,7 @@ function toggleAdminStatus(userId, currentStatus) {
     }
 }
 
-// Edit User (Functionality updated to allow basic name edit)
+// Edit User
 function editUser(userId) {
     let users = JSON.parse(localStorage.getItem('shohoj_users')) || {};
     let user = users[userId];
@@ -401,7 +397,7 @@ function loadWithdrawals(users) {
                                 <button onclick="approveWithdrawal('${u.id}', ${index})" class="bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700">
                                     <i class="fas fa-check text-xs"></i> Approve
                                 </button>
-                                <button onclick="rejectWithdrawal('${u.id}', ${index})" class="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700">
+                                <button onclick="rejectWithdrawal('${u.id}', ${index}')" class="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700">
                                     <i class="fas fa-times text-xs"></i> Reject
                                 </button>
                             </td>
@@ -549,15 +545,14 @@ function importData() {
     input.click();
 }
 
-// Initialize Admin Panel
+// Initialize Admin Panel - কোনো শর্ত ছাড়াই ফাংশনগুলো লোড করা হবে
 document.addEventListener('DOMContentLoaded', function() {
-    if (checkAdminAccess()) {
-        loadSystemSettings();
-        loadUsersData();
-        
-        // Refresh every 30 seconds
-        setInterval(loadUsersData, 30000);
-    }
+    checkAdminAccess();
+    loadSystemSettings();
+    loadUsersData();
+    
+    // Refresh every 30 seconds
+    setInterval(loadUsersData, 30000);
 });
 </script>
 </body>
